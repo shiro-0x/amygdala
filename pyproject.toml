@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amygdala"
+version = "0.1.0"
+description = "Emotion & relationship memory layer on top of AxDSan/mnemosyne"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+dependencies = [
+    "mnemosyne-memory",   # A版: 事実メモリ基盤 (vec + FTS5 hybrid, temporal triples)
+    "fastembed",          # A版の dense retrieval に必要
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+include = ["amygdala*"]
