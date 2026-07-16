@@ -74,11 +74,13 @@ class EmotionWorker:
         classifier: EmotionClassifier | None = None,
         queue_maxsize: int = DEFAULT_QUEUE_MAXSIZE,
         relation_weight: float = 0.05,
+        mood_alpha: float | None = None,
     ):
         self.emotion_store = emotion_store
         self.relation_store = relation_store
         self.classify = classifier or _neutral_classifier
         self.relation_weight = relation_weight
+        self.mood_alpha = mood_alpha  # None なら気分は更新しない
         self._q: "queue.Queue[EmotionJob | None]" = queue.Queue(
             maxsize=queue_maxsize)
         self._thread: threading.Thread | None = None
@@ -149,6 +151,7 @@ class EmotionWorker:
             job.job_id, job.memory_id, emo, job.partner_id,
             relation_store=self.relation_store,
             relation_weight=self.relation_weight,
+            mood_alpha=self.mood_alpha,
         )
         with self._stats_lock:
             if applied:
