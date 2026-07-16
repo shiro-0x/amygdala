@@ -85,6 +85,14 @@ router.export_state(partner_id="user_42")
 
 テストや mnemosyne なしの試用には `InMemoryCore` が使えます。
 
+## 感情推定器のリファレンス実装(examples/)
+
+`classifier` は `Callable[[str], Emotion]` なら何でも差し込めます。参考実装:
+
+- [`examples/rule_classifier.py`](./examples/rule_classifier.py) — キーワード一致の決定論的分類器(依存ゼロ。開発・テスト向け)
+- [`examples/llm_classifier.py`](./examples/llm_classifier.py) — Claude API + structured outputs(要 `pip install anthropic`。**記憶テキストが外部へ送信される**点に注意)
+- [`examples/chat_loop.py`](./examples/chat_loop.py) — 記録→気分→注入ブロック→想起の通しデモ(`python examples/chat_loop.py`)
+
 再ランク重みの採用根拠(感情なしベースラインとの比較)は
 `python benchmarks/eval_rerank.py` で再現できます(結果:
 [benchmarks/results.json](./benchmarks/results.json))。
