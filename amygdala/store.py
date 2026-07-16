@@ -49,6 +49,16 @@ CREATE TABLE IF NOT EXISTS processed_jobs (
     job_id TEXT PRIMARY KEY,
     ts     REAL NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS mood (
+    id         INTEGER PRIMARY KEY CHECK (id = 1),
+    joy        REAL NOT NULL DEFAULT 0.0,
+    anger      REAL NOT NULL DEFAULT 0.0,
+    sorrow     REAL NOT NULL DEFAULT 0.0,
+    pleasure   REAL NOT NULL DEFAULT 0.0,
+    neutral    REAL NOT NULL DEFAULT 1.0,
+    updated_ts REAL NOT NULL
+);
 """
 
 
@@ -90,12 +100,14 @@ class EmotionStore:
 
     def apply_job(self, job_id: str, memory_id: str, emo: Emotion,
                   partner_id: str | None, relation_store=None,
-                  relation_weight: float = 0.05) -> bool:
+                  relation_weight: float = 0.05,
+                  mood_alpha: float | None = None) -> bool:
         """感情ジョブを冪等に適用する(FR-2.6)。
 
-        processed_jobs へのマーカ挿入・感情の upsert・関係性更新を
-        単一ロック内の単一トランザクションで行う。同じ job_id が既に
-        処理済みなら何もせず False を返す(二重加算しない)。
+        processed_jobs へのマーカ挿入・感情の upsert・関係性更新・
+        気分の積分(mood_alpha 指定時。FR-5.3)を単一ロック内の
+        単一トランザクションで行う。同じ job_id が既に処理済みなら
+        何もせず False を返す(二重加算しない)。
         """
         with self.lock:
             cur = self.con.execute(
@@ -110,6 +122,11 @@ class EmotionStore:
                 if partner_id and relation_store is not None:
                     relation_store.apply_emotion_in_txn(
                         partner_id, emo, weight=relation_weight)
+                if mood_alpha is not None:
+                    from amygdala.mood import integrate
+                    self._save_mood_in_txn(
+                        integrate(self._get_mood_in_txn(), emo,
+                                  alpha=mood_alpha))
                 self.con.commit()
             except Exception:
                 self.con.rollback()
@@ -155,6 +172,38 @@ class EmotionStore:
             f"WHERE memory_id IN ({ph})", memory_ids,
         ).fetchall()
         return {r[0]: r[1] for r in rows}
+
+    # --- 現在の気分(FR-5.4: プロセス再起動をまたいで永続化) ---
+
+    def _get_mood_in_txn(self) -> Emotion:
+        row = self.con.execute(
+            "SELECT joy, anger, sorrow, pleasure, neutral FROM mood "
+            "WHERE id = 1").fetchone()
+        if row is None:
+            return Emotion.neutral_default()
+        return Emotion.from_list(list(row))
+
+    def get_mood(self) -> Emotion:
+        """現在の気分。未初期化なら neutral 既定。"""
+        return self._get_mood_in_txn()
+
+    def _save_mood_in_txn(self, emo: Emotion) -> None:
+        self.con.execute(
+            """INSERT INTO mood (id, joy, anger, sorrow, pleasure, neutral,
+                                 updated_ts)
+               VALUES (1,?,?,?,?,?,?)
+               ON CONFLICT(id) DO UPDATE SET
+                 joy=excluded.joy, anger=excluded.anger, sorrow=excluded.sorrow,
+                 pleasure=excluded.pleasure, neutral=excluded.neutral,
+                 updated_ts=excluded.updated_ts""",
+            (emo.joy, emo.anger, emo.sorrow, emo.pleasure, emo.neutral,
+             time.time()),
+        )
+
+    def save_mood(self, emo: Emotion) -> None:
+        with self.lock:
+            self._save_mood_in_txn(emo)
+            self.con.commit()
 
     # --- データライフサイクル(NFR-12) ---
 

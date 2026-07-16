@@ -1,0 +1,32 @@
+{
+  "k": 2,
+  "corpus": {
+    "topics": 4,
+    "partners": 3,
+    "memories": 33
+  },
+  "baseline": {
+    "label": "baseline (core only)",
+    "weights": {
+      "core": 1.0,
+      "partner": 0.0,
+      "emotion": 0.0,
+      "importance": 0.0
+    },
+    "recall@2": 0.3333,
+    "latency_ms_mean": 0.2
+  },
+  "default": {
+    "label": "default weights",
+    "weights": {
+      "core": 0.55,
+      "partner": 0.2,
+      "emotion": 0.15,
+      "importance": 0.1
+    },
+    "recall@2": 1.0,
+    "latency_ms_mean": 0.178
+  },
+  "rank_overlap_topk": 0.3333,
+  "note": "正解 = 同一トピックかつ同一相手の記憶。partner/emotion 項が効くと baseline より recall が上がる設計。latency は InMemoryCore 経由の配線コスト(検索本体は含まない)。"
+}
