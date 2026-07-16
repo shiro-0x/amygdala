@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "amygdala"
-version = "0.2.0"
+version = "0.4.0"
 description = "Emotion & relationship memory layer on top of mnemosyne"
 readme = "README.md"
 requires-python = ">=3.11"
