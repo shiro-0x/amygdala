@@ -4,11 +4,22 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "amygdala"
-version = "0.4.0"
-description = "Emotion & relationship memory layer on top of mnemosyne"
+version = "1.0.0rc1"
+description = "Emotion & relationship memory layer on top of mnemosyne — 5-axis emotions, relationship progression, mood state, and prompt injection blocks for LLM characters"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
+authors = [{ name = "shiro-0x" }]
+keywords = ["llm", "emotion", "memory", "agent", "character", "persona",
+            "affective-computing", "mnemosyne", "hersona"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 # mnemosyne-memory: 事実メモリ基盤 (vec + FTS5 hybrid, temporal triples)。
 # 対応範囲は 3.x 系(戻り値契約は tests/test_contract_mnemosyne.py で検証)。
 dependencies = [
