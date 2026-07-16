@@ -81,7 +81,13 @@ class Emotion:
 
     @classmethod
     def from_dict(cls, d: dict | None) -> "Emotion":
-        """部分指定可。空/None なら neutral=1.0 の既定。"""
+        """部分指定可。空/None なら neutral=1.0 の既定。
+
+        仕様(FR-1.4): 喜怒哀楽のいずれかが指定されていて neutral の明示が
+        無い場合、neutral は 0.0 起点とする(「感情が動いた」ことが分かって
+        いるのに既定の無=1.0 を残さないため)。何も指定が無ければ既定の
+        neutral=1.0(=未推定/平静)になる。
+        """
         if not d:
             return cls()
         return cls(
