@@ -5,17 +5,20 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "amygdala"
 version = "0.1.0"
-description = "Emotion & relationship memory layer on top of AxDSan/mnemosyne"
+description = "Emotion & relationship memory layer on top of mnemosyne"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 license = { text = "MIT" }
+# mnemosyne-memory: 事実メモリ基盤 (vec + FTS5 hybrid, temporal triples)。
+# 対応範囲は 3.x 系(戻り値契約は tests/test_contract_mnemosyne.py で検証)。
 dependencies = [
-    "mnemosyne-memory",   # A版: 事実メモリ基盤 (vec + FTS5 hybrid, temporal triples)
-    "fastembed",          # A版の dense retrieval に必要
+    "mnemosyne-memory>=3.12,<4",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+# 上流の optional embeddings profile に整合させる(fastembed を直接固定しない)
+embeddings = ["mnemosyne-memory[embeddings]>=3.12,<4"]
+dev = ["pytest>=8"]
 
 [tool.setuptools.packages.find]
 include = ["amygdala*"]
