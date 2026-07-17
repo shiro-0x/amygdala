@@ -123,7 +123,3 @@ amygdala builds on [mnemosyne](https://github.com/mnemosyne-oss/mnemosyne)
 (MIT License). The underlying fact-memory engine, vector/FTS5 hybrid search,
 and temporal triples are from that project. The emotion (喜怒哀楽+無),
 relationship-progression, and STM-boundary layers are original to amygdala.
-
-名前について: ゲームNPC向け感情エンジンの先行研究
-[GAMYGDALA](https://github.com/broekens/gamygdala) (game + amygdala) とは
-別プロジェクトです。appraisal→状態のループ設計など理論面で参考にしています。
