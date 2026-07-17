@@ -4,6 +4,24 @@
 バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に従う。
 公開 API の定義は [docs/PUBLIC_API.md](./docs/PUBLIC_API.md)。
 
+## [1.2.0] - 2026-07-17
+
+### Added
+- **milestone 自動検出(注入式)**: `MilestoneDetector = Callable[[str], list[str]]`
+  を `MemoryRouter(milestone_detector=...)` に注入すると、背景ワーカが検出した
+  節目ラベルを冪等トランザクション内で関係性へ追記する。失敗時は検出なしに
+  フォールバック。参考実装 `examples/rule_milestone_detector.py`
+- **感情間の相互作用(オプトイン)**: `synergy_and_antagonism`(快の相乗・
+  快 vs 不快の相殺)/ `interaction_identity`(既定=無効)。
+  `MemoryRouter(interaction=...)` に渡すと積分・関係更新の直前に適用
+- **recall 重みの動的調整**: `recall(..., weights=...)` の per-call 上書きと、
+  `MemoryRouter(weights_selector=lambda ctx: RerankWeights | None)` による
+  コンテキスト依存の切替。決定順は 引数 > selector > router 既定
+
+### Notes
+- 未決事項の決定(オーナー判断): mood は相手別化せず全体で 1 つを維持
+  (相手差分は関係性が担う)。DB スキーマ変更なし
+
 ## [1.1.0] - 2026-07-17
 
 ### Added

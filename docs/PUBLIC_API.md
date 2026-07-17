@@ -22,7 +22,7 @@ from amygdala import MemoryRouter, Emotion, RealCore
 
 | シンボル | 説明 |
 |---|---|
-| `MemoryRouter` | 統合窓口。`remember(text, ctx=None, partner_id=None) -> memory_id` / `remember_fact(subject, predicate, obj, valid_from=None)` / `recall(query, ctx=None, k=6, candidate_k=24) -> list[RankedHit]` / `relation_context(partner_id) -> str` / `mood()` / `set_mood(emo)` / `reset_mood()` / `tick_mood(turns=1)` / `tick_relation(partner_id, ticks=1)`(1.1+)/ `state_block(partner_id=None, lang="ja")` / `export_state(partner_id=None)` / `export_partner(partner_id)` / `forget_partner(partner_id)` / `cleanup_orphans(live_memory_ids)` / `stats()` / `close()` |
+| `MemoryRouter` | 統合窓口。`remember(text, ctx=None, partner_id=None) -> memory_id` / `remember_fact(subject, predicate, obj, valid_from=None)` / `recall(query, ctx=None, k=6, candidate_k=24, weights=None) -> list[RankedHit]`(weights 引数は 1.2+、動的調整)/ `relation_context(partner_id) -> str` / `mood()` / `set_mood(emo)` / `reset_mood()` / `tick_mood(turns=1)` / `tick_relation(partner_id, ticks=1)`(1.1+)/ `state_block(partner_id=None, lang="ja")` / `export_state(partner_id=None)` / `export_partner(partner_id)` / `forget_partner(partner_id)` / `cleanup_orphans(live_memory_ids)` / `stats()` / `close()`。コンストラクタは `interaction=` / `milestone_detector=` / `weights_selector=`(いずれも 1.2+、オプトイン)を受ける |
 
 ## emotion — 感情モデル (FR-1)
 
@@ -46,6 +46,14 @@ from amygdala import MemoryRouter, Emotion, RealCore
 | `export_state(mood, relation=None) -> dict` | JSON 化可能な dict。`dominant` は表情マッピング(emotionMap 等)に使える |
 | `sanitize_value(value, max_len=30) -> str` | 自由文字列をテンプレート値として安全な形に整形(FR-6.5) |
 | `token_estimate(text) -> dict` | `{"chars": int, "tokens_approx": int}` の概算コスト(FR-6.4) |
+
+## interaction — 感情間の相互作用 (v1.2, オプトイン)
+
+| シンボル | 説明 |
+|---|---|
+| `interaction_identity(emo) -> Emotion` | 既定。相互作用なし(恒等)。`MemoryRouter(interaction=...)` に渡さなければこれと同じ |
+| `synergy_and_antagonism(emo, synergy=0.15, antagonism=0.20) -> Emotion` | 快感情どうしの相乗と、快 vs 不快の相殺を適用する純関数(既定ルール)。係数は経験則、値に依存するなら明示指定 |
+| `MilestoneDetector` | milestone 自動検出器の型 `Callable[[str], list[str]]`(v1.2、注入式)。`MemoryRouter(milestone_detector=...)` に渡すと背景ワーカが冪等トランザクション内で関係性へ追記。失敗時は検出なしにフォールバック |
 
 ## rerank / stm — 想起 (FR-3)
 

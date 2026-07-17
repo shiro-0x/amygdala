@@ -58,6 +58,10 @@ class EmotionJob:
 # text -> Emotion を推定する関数の型。LLM や分類器を差し込む。
 EmotionClassifier = Callable[[str], Emotion]
 
+# text -> milestone ラベル列 を推定する関数の型(v1.2, 注入式)。
+# classifier と同型の外部注入。失敗時は検出なしにフォールバックする。
+MilestoneDetector = Callable[[str], "list[str]"]
+
 
 def _neutral_classifier(_text: str) -> Emotion:
     """既定。感情推定器が無いときは常に neutral。"""
@@ -75,12 +79,16 @@ class EmotionWorker:
         queue_maxsize: int = DEFAULT_QUEUE_MAXSIZE,
         relation_weight: float = 0.05,
         mood_alpha: float | None = None,
+        interaction: "Callable[[Emotion], Emotion] | None" = None,
+        milestone_detector: MilestoneDetector | None = None,
     ):
         self.emotion_store = emotion_store
         self.relation_store = relation_store
         self.classify = classifier or _neutral_classifier
         self.relation_weight = relation_weight
         self.mood_alpha = mood_alpha  # None なら気分は更新しない
+        self.interaction = interaction  # None なら感情間相互作用なし
+        self.detect_milestones = milestone_detector  # None なら検出なし
         self._q: "queue.Queue[EmotionJob | None]" = queue.Queue(
             maxsize=queue_maxsize)
         self._thread: threading.Thread | None = None
@@ -147,11 +155,28 @@ class EmotionWorker:
             emo = Emotion.neutral_default()
             with self._stats_lock:
                 self._stats["fallbacks"] += 1
+        # 感情間相互作用(オプトイン)。失敗しても生値のまま続行。
+        if self.interaction is not None:
+            try:
+                emo = self.interaction(emo)
+            except Exception:
+                log.exception("interaction failed for %s; using raw emotion",
+                              job.memory_id)
+        # milestone 自動検出(注入式)。失敗・partner なしなら検出なし。
+        milestones: list[str] | None = None
+        if self.detect_milestones is not None and job.partner_id:
+            try:
+                found = self.detect_milestones(job.text)
+                milestones = list(found) if found else None
+            except Exception:
+                log.exception("milestone detector failed for %s; skipping",
+                              job.memory_id)
         applied = self.emotion_store.apply_job(
             job.job_id, job.memory_id, emo, job.partner_id,
             relation_store=self.relation_store,
             relation_weight=self.relation_weight,
             mood_alpha=self.mood_alpha,
+            milestones=milestones,
         )
         with self._stats_lock:
             if applied:
