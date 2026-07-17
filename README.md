@@ -142,8 +142,3 @@ amygdala builds on [mnemosyne](https://github.com/mnemosyne-oss/mnemosyne)
 and temporal triples are from that project. The emotion (喜怒哀楽+無),
 relationship-progression, mood, and STM-boundary layers are original to
 amygdala.
-
-About the name: this is a separate project from
-[GAMYGDALA](https://github.com/broekens/gamygdala) (game + amygdala), the
-prior emotion engine for game NPCs — we reference its theory (the
-appraisal → state loop) but share no code.
