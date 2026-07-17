@@ -30,7 +30,7 @@ import json
 import subprocess
 import sys
 import uuid
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -201,7 +201,9 @@ def main() -> None:
 
     if args.save:
         OUT_DIR.mkdir(exist_ok=True)
-        out = OUT_DIR / f"{result['date']}-{args.model}-{scenario.id}.json"
+        stamp = datetime.now().strftime("%H%M%S")
+        out = (OUT_DIR
+               / f"{result['date']}-{stamp}-{args.model}-{scenario.id}.json")
         out.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n",
                        encoding="utf-8")
         print(f"saved: {out}", file=sys.stderr)
