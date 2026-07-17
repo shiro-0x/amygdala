@@ -4,6 +4,14 @@
 バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に従う。
 公開 API の定義は [docs/PUBLIC_API.md](./docs/PUBLIC_API.md)。
 
+## [1.1.0] - 2026-07-17
+
+### Added
+- FR-4.4(前半): 関係性の時間減衰。`RelationState.decay(ticks, rate)` /
+  `RelationStore.decay`(原子的)/ `MemoryRouter.tick_relation(partner_id)`。
+  既定率 0.01/tick(気分 0.1/turn の 1/10 — 感情・気分・関係の三速構成)。
+  milestones は減衰しない。tick の単位(日・セッション等)は呼び出し側が定義
+
 ## [1.0.0] - 2026-07-17
 
 ### Added

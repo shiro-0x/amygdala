@@ -74,6 +74,7 @@ print(router.relation_context("user_42"))
 # 現在の気分(remember の感情推定から背景で自動更新される)
 router.mood()            # Emotion(joy=0.3, ...)
 router.tick_mood()       # 会話ターンごとに呼ぶと neutral へ減衰
+router.tick_relation("user_42")  # 交流の無い日/セッションごとに関係がゆっくり冷める
 
 # システムプロンプト注入ブロック(hersona の injection block と並置する)
 print(router.state_block(partner_id="user_42", lang="ja"))

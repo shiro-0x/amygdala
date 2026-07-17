@@ -86,6 +86,7 @@ print(router.relation_context("user_42"))
 # Current mood (auto-updated in the background from remember())
 router.mood()            # Emotion(joy=0.3, ...)
 router.tick_mood()       # call once per conversation turn to decay
+router.tick_relation("user_42")  # slower decay per day/session without contact
 
 # System-prompt injection block (sits next to a hersona injection block)
 print(router.state_block(partner_id="user_42", lang="en"))

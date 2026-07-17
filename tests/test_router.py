@@ -60,6 +60,21 @@ def test_remember_fact_goes_to_triples(router):
     assert router.recall("manager") == []
 
 
+def test_tick_relation_decays_slower_than_mood(router):
+    """FR-4.4: 関係は気分より遅い時間軸で減衰する。"""
+    router.remember("一緒に 遊んで 楽しかった 嬉しい", partner_id="A")
+    router.worker.drain_sync()
+    before = router.relation_store.get("A").affinity
+    assert before > 0
+
+    state = router.tick_relation("A")
+    assert 0 < state.affinity < before
+    # 既定率: 関係 0.01/tick は気分 0.1/turn の 1/10
+    assert state.affinity == pytest.approx(before * 0.99)
+    assert router.relation_store.get("A").affinity == pytest.approx(
+        state.affinity)
+
+
 def test_export_and_forget_partner(router):
     router.remember("楽しかった", partner_id="A")
     router.worker.drain_sync()

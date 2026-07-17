@@ -22,7 +22,7 @@ from amygdala import MemoryRouter, Emotion, RealCore
 
 | シンボル | 説明 |
 |---|---|
-| `MemoryRouter` | 統合窓口。`remember(text, ctx=None, partner_id=None) -> memory_id` / `remember_fact(subject, predicate, obj, valid_from=None)` / `recall(query, ctx=None, k=6, candidate_k=24) -> list[RankedHit]` / `relation_context(partner_id) -> str` / `mood()` / `set_mood(emo)` / `reset_mood()` / `tick_mood(turns=1)` / `state_block(partner_id=None, lang="ja")` / `export_state(partner_id=None)` / `export_partner(partner_id)` / `forget_partner(partner_id)` / `cleanup_orphans(live_memory_ids)` / `stats()` / `close()` |
+| `MemoryRouter` | 統合窓口。`remember(text, ctx=None, partner_id=None) -> memory_id` / `remember_fact(subject, predicate, obj, valid_from=None)` / `recall(query, ctx=None, k=6, candidate_k=24) -> list[RankedHit]` / `relation_context(partner_id) -> str` / `mood()` / `set_mood(emo)` / `reset_mood()` / `tick_mood(turns=1)` / `tick_relation(partner_id, ticks=1)`(1.1+)/ `state_block(partner_id=None, lang="ja")` / `export_state(partner_id=None)` / `export_partner(partner_id)` / `forget_partner(partner_id)` / `cleanup_orphans(live_memory_ids)` / `stats()` / `close()` |
 
 ## emotion — 感情モデル (FR-1)
 
@@ -61,8 +61,8 @@ from amygdala import MemoryRouter, Emotion, RealCore
 
 | シンボル | 説明 |
 |---|---|
-| `RelationState` | `partner_id` / `affinity`(-1〜1)/ `trust`(-1〜1)/ `milestones`。`apply_emotion(emo, weight=0.05)` / `add_milestone(label)` / `to_context()` |
-| `RelationStore` | 永続化。`get` / `save` / `apply_emotion`(原子的)/ `add_milestone` / `delete` |
+| `RelationState` | `partner_id` / `affinity`(-1〜1)/ `trust`(-1〜1)/ `milestones`。`apply_emotion(emo, weight=0.05)` / `add_milestone(label)` / `decay(ticks=1, rate=0.01)`(1.1+。milestones は減衰しない)/ `to_context()` |
+| `RelationStore` | 永続化。`get` / `save` / `apply_emotion`(原子的)/ `add_milestone` / `decay`(原子的、1.1+)/ `delete` |
 
 ## store / worker — 永続化と背景処理 (FR-2)
 

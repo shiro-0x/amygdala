@@ -14,7 +14,8 @@ from amygdala.core_adapter import Core
 from amygdala.emotion import Emotion
 from amygdala.rerank import (DEFAULT_CANDIDATE_K, DEFAULT_K, DEFAULT_WEIGHTS,
                              RankedHit, RerankWeights, rerank)
-from amygdala.relation import RelationStore
+from amygdala.relation import (DEFAULT_RELATION_DECAY_RATE, RelationState,
+                               RelationStore)
 from amygdala.store import EmotionStore
 from amygdala.worker import (DEFAULT_QUEUE_MAXSIZE, EmotionClassifier,
                              EmotionJob, EmotionWorker)
@@ -31,11 +32,13 @@ class MemoryRouter:
         relation_weight: float = 0.05,
         mood_alpha: float = mood_dynamics.DEFAULT_ALPHA,
         mood_decay: mood_dynamics.DecayFn | None = None,
+        relation_decay_rate: float = DEFAULT_RELATION_DECAY_RATE,
     ):
         weights.validate()
         self.core = core
         self.weights = weights
         self.mood_decay = mood_decay or mood_dynamics.decay
+        self.relation_decay_rate = relation_decay_rate
         self.emotion_store = EmotionStore(db_path)
         self.relation_store = RelationStore(
             self.emotion_store.con, lock=self.emotion_store.lock,
@@ -113,6 +116,16 @@ class MemoryRouter:
         decayed = self.mood_decay(self.emotion_store.get_mood(), turns)
         self.emotion_store.save_mood(decayed)
         return decayed
+
+    def tick_relation(self, partner_id: str, ticks: int = 1) -> RelationState:
+        """交流の無い期間の経過で関係性を減衰させる(FR-4.4)。
+
+        気分の tick_mood(ターンごと)より遅い時間軸を想定し、呼び出し側が
+        「1 日」「1 セッション」などの単位で明示的に呼ぶ。milestones は
+        減衰しない。
+        """
+        return self.relation_store.decay(partner_id, ticks=ticks,
+                                         rate=self.relation_decay_rate)
 
     # --- プロンプト注入 / export(FR-6) ---
 
