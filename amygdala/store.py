@@ -101,13 +101,14 @@ class EmotionStore:
     def apply_job(self, job_id: str, memory_id: str, emo: Emotion,
                   partner_id: str | None, relation_store=None,
                   relation_weight: float = 0.05,
-                  mood_alpha: float | None = None) -> bool:
+                  mood_alpha: float | None = None,
+                  milestones: list[str] | None = None) -> bool:
         """感情ジョブを冪等に適用する(FR-2.6)。
 
-        processed_jobs へのマーカ挿入・感情の upsert・関係性更新・
-        気分の積分(mood_alpha 指定時。FR-5.3)を単一ロック内の
-        単一トランザクションで行う。同じ job_id が既に処理済みなら
-        何もせず False を返す(二重加算しない)。
+        processed_jobs へのマーカ挿入・感情の upsert・関係性更新
+        (milestone 自動検出結果の追記を含む)・気分の積分(mood_alpha
+        指定時。FR-5.3)を単一ロック内の単一トランザクションで行う。
+        同じ job_id が既に処理済みなら何もせず False を返す(二重加算しない)。
         """
         with self.lock:
             cur = self.con.execute(
@@ -121,7 +122,8 @@ class EmotionStore:
                 self._put_in_txn(memory_id, emo, partner_id, None)
                 if partner_id and relation_store is not None:
                     relation_store.apply_emotion_in_txn(
-                        partner_id, emo, weight=relation_weight)
+                        partner_id, emo, weight=relation_weight,
+                        milestones=milestones)
                 if mood_alpha is not None:
                     from amygdala.mood import integrate
                     self._save_mood_in_txn(

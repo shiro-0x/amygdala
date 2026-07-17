@@ -117,9 +117,18 @@ Any `Callable[[str], Emotion]` can be plugged in as `classifier`:
 - [`examples/llm_classifier.py`](./examples/llm_classifier.py) — Claude API
   with structured outputs (requires `pip install anthropic`; **note that
   memory text is sent to an external API**)
+- [`examples/rule_milestone_detector.py`](./examples/rule_milestone_detector.py)
+  — deterministic milestone detector (`Callable[[str], list[str]]`) for
+  `MemoryRouter(milestone_detector=...)`, so events like "first met" auto-record
+  relationship milestones
 - [`examples/chat_loop.py`](./examples/chat_loop.py) — end-to-end demo:
   remember → mood → injection block → recall
   (`python examples/chat_loop.py`)
+
+Opt-in hooks (all default to off): `interaction=` applies emotion-axis
+synergy/antagonism, `milestone_detector=` auto-records milestones, and
+`weights_selector=` / `recall(..., weights=...)` switch rerank weights per
+context. See [docs/PUBLIC_API.md](./docs/PUBLIC_API.md).
 
 ## Development
 

@@ -97,7 +97,13 @@ router.export_state(partner_id="user_42")
 
 - [`examples/rule_classifier.py`](./examples/rule_classifier.py) — キーワード一致の決定論的分類器(依存ゼロ。開発・テスト向け)
 - [`examples/llm_classifier.py`](./examples/llm_classifier.py) — Claude API + structured outputs(要 `pip install anthropic`。**記憶テキストが外部へ送信される**点に注意)
+- [`examples/rule_milestone_detector.py`](./examples/rule_milestone_detector.py) — 節目の決定論的検出器(`Callable[[str], list[str]]`)。`MemoryRouter(milestone_detector=...)` に渡すと「初めて会った」等から節目を自動登録
 - [`examples/chat_loop.py`](./examples/chat_loop.py) — 記録→気分→注入ブロック→想起の通しデモ(`python examples/chat_loop.py`)
+
+オプトインのフック(いずれも既定 OFF): `interaction=`(感情軸の相乗/相殺)、
+`milestone_detector=`(節目の自動登録)、`weights_selector=` /
+`recall(..., weights=...)`(コンテキスト依存の再ランク重み)。詳細は
+[docs/PUBLIC_API.md](./docs/PUBLIC_API.md)。
 
 再ランク重みの採用根拠(感情なしベースラインとの比較)は
 `python benchmarks/eval_rerank.py` で再現できます(結果:

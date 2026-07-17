@@ -11,6 +11,8 @@ from amygdala.attach import (export_state, render_state_block, sanitize_value,
                              token_estimate)
 from amygdala.core_adapter import Core, InMemoryCore, RealCore
 from amygdala.emotion import AXES, Emotion
+from amygdala.interaction import identity as interaction_identity
+from amygdala.interaction import synergy_and_antagonism
 from amygdala.mood import decay as mood_decay
 from amygdala.mood import integrate as mood_integrate
 from amygdala.relation import RelationState, RelationStore
@@ -18,9 +20,10 @@ from amygdala.rerank import Candidate, RankedHit, RerankWeights, rerank
 from amygdala.router import MemoryRouter
 from amygdala.stm import filter_beyond_stm
 from amygdala.store import EmotionStore
-from amygdala.worker import EmotionClassifier, EmotionJob, EmotionWorker
+from amygdala.worker import (EmotionClassifier, EmotionJob, EmotionWorker,
+                             MilestoneDetector)
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 __all__ = [
     "AXES",
@@ -33,6 +36,7 @@ __all__ = [
     "EmotionWorker",
     "InMemoryCore",
     "MemoryRouter",
+    "MilestoneDetector",
     "RankedHit",
     "RealCore",
     "RelationState",
@@ -40,10 +44,12 @@ __all__ = [
     "RerankWeights",
     "export_state",
     "filter_beyond_stm",
+    "interaction_identity",
     "mood_decay",
     "mood_integrate",
     "render_state_block",
     "rerank",
     "sanitize_value",
+    "synergy_and_antagonism",
     "token_estimate",
 ]

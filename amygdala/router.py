@@ -18,7 +18,11 @@ from amygdala.relation import (DEFAULT_RELATION_DECAY_RATE, RelationState,
                                RelationStore)
 from amygdala.store import EmotionStore
 from amygdala.worker import (DEFAULT_QUEUE_MAXSIZE, EmotionClassifier,
-                             EmotionJob, EmotionWorker)
+                             EmotionJob, EmotionWorker, MilestoneDetector)
+
+# ctx -> RerankWeights | None を返す動的重み選択フック(v1.2)。
+# None を返すと router 既定の weights が使われる。
+WeightsSelector = "Callable[[dict], RerankWeights | None]"
 
 
 class MemoryRouter:
@@ -33,10 +37,14 @@ class MemoryRouter:
         mood_alpha: float = mood_dynamics.DEFAULT_ALPHA,
         mood_decay: mood_dynamics.DecayFn | None = None,
         relation_decay_rate: float = DEFAULT_RELATION_DECAY_RATE,
+        interaction=None,
+        milestone_detector: MilestoneDetector | None = None,
+        weights_selector=None,
     ):
         weights.validate()
         self.core = core
         self.weights = weights
+        self.weights_selector = weights_selector
         self.mood_decay = mood_decay or mood_dynamics.decay
         self.relation_decay_rate = relation_decay_rate
         self.emotion_store = EmotionStore(db_path)
@@ -46,7 +54,8 @@ class MemoryRouter:
         self.worker = EmotionWorker(
             self.emotion_store, self.relation_store, classifier=classifier,
             queue_maxsize=queue_maxsize, relation_weight=relation_weight,
-            mood_alpha=mood_alpha,
+            mood_alpha=mood_alpha, interaction=interaction,
+            milestone_detector=milestone_detector,
         )
         self.worker.start()
 
@@ -72,13 +81,25 @@ class MemoryRouter:
     # --- 想起 ---
     def recall(self, query: str, ctx: dict | None = None,
                k: int = DEFAULT_K,
-               candidate_k: int = DEFAULT_CANDIDATE_K) -> list[RankedHit]:
+               candidate_k: int = DEFAULT_CANDIDATE_K,
+               weights: RerankWeights | None = None) -> list[RankedHit]:
         """mnemosyne で広く候補取得 → partner_id 復元 → 二段ランク。
 
         ctx に partner_id / stm_oldest_id を入れると、関係相手一致と
         STM 境界除外が効く。
+
+        重みの決定順(v1.2 動的調整):
+          1. 引数 weights(明示指定が最優先)
+          2. weights_selector(ctx)(コンテキスト依存の切替。None を返せば次へ)
+          3. router 既定の self.weights
         """
         ctx = ctx or {}
+        effective = weights
+        if effective is None and self.weights_selector is not None:
+            effective = self.weights_selector(ctx)
+        if effective is None:
+            effective = self.weights
+
         candidates = self.core.recall(query, top_k=candidate_k)
         ids = [c.memory_id for c in candidates]
         emotions = self.emotion_store.get_many(ids)
@@ -87,7 +108,7 @@ class MemoryRouter:
         for c in candidates:
             if c.partner_id is None:
                 c.partner_id = partner_map.get(c.memory_id)
-        return rerank(candidates, emotions, ctx, k=k, weights=self.weights)
+        return rerank(candidates, emotions, ctx, k=k, weights=effective)
 
     def relation_context(self, partner_id: str) -> str:
         """recall 時に常時注入する関係状態サマリ(STM除外の対象外)。"""

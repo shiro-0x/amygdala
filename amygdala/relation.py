@@ -117,14 +117,19 @@ class RelationStore:
         )
 
     def apply_emotion_in_txn(self, partner_id: str, emo: Emotion,
-                             weight: float = 0.05) -> RelationState:
-        """ロック取得済み・トランザクション内での get → apply → save。
+                             weight: float = 0.05,
+                             milestones: list[str] | None = None
+                             ) -> RelationState:
+        """ロック取得済み・トランザクション内での get → apply(+milestone)→ save。
 
         EmotionStore.apply_job(感情ジョブの冪等適用)から呼ばれる。
-        commit は呼び出し側が行う。
+        commit は呼び出し側が行う。milestones を渡すと同一状態へ追記する
+        (冪等ジョブの一部として原子的に)。
         """
         state = self.get(partner_id)
         state.apply_emotion(emo, weight=weight)
+        for label in milestones or ():
+            state.add_milestone(label)
         self._save_in_txn(state)
         return state
 
