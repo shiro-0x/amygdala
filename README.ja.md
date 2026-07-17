@@ -20,6 +20,8 @@
 要件・設計判断・ロードマップは [docs/REQUIREMENTS.md](./docs/REQUIREMENTS.md) を
 参照してください。公開 API(semver 対象)は
 [docs/PUBLIC_API.md](./docs/PUBLIC_API.md) に確定しています。
+hersona との並置規約と統合実験(state_block 並置で人格維持の劣化なし、n=2)
+は [docs/INTEGRATION.md](./docs/INTEGRATION.md) にまとめています。
 
 依存は `mnemosyne-memory`(pip)です。検索精度(vec + FTS5 ハイブリッド)は
 mnemosyne に任せ、最終ランクのみ amygdala が決めます。
