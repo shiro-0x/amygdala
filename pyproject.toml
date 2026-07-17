@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "amygdala"
-version = "1.0.0"
+version = "1.1.0"
 description = "Emotion & relationship memory layer on top of mnemosyne — 5-axis emotions, relationship progression, mood state, and prompt injection blocks for LLM characters"
 readme = "README.md"
 requires-python = ">=3.11"

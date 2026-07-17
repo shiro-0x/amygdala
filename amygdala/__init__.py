@@ -20,7 +20,7 @@ from amygdala.stm import filter_beyond_stm
 from amygdala.store import EmotionStore
 from amygdala.worker import EmotionClassifier, EmotionJob, EmotionWorker
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 __all__ = [
     "AXES",

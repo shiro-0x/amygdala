@@ -23,6 +23,11 @@ def _clamp(x: float, lo: float = -1.0, hi: float = 1.0) -> float:
     return max(lo, min(hi, x))
 
 
+# 関係性の時間減衰の既定率(1 tick あたり)。気分(mood.DEFAULT_DECAY_RATE=0.1)
+# より一桁遅い: 感情=速い / 気分=遅い / 関係=最も遅い、の三速構成(FR-4.4)。
+DEFAULT_RELATION_DECAY_RATE = 0.01
+
+
 @dataclass
 class RelationState:
     partner_id: str
@@ -46,6 +51,21 @@ class RelationState:
     def add_milestone(self, label: str) -> None:
         if label not in self.milestones:
             self.milestones.append(label)
+
+    def decay(self, ticks: int = 1,
+              rate: float = DEFAULT_RELATION_DECAY_RATE) -> None:
+        """交流が無い期間の経過で affinity / trust を 0 へ減衰させる(FR-4.4)。
+
+        1 tick の単位(日・セッション等)は呼び出し側が決める。決定論的。
+        milestones(節目の事実)は減衰しない。
+        """
+        if ticks < 0:
+            raise ValueError(f"ticks must be >= 0, got {ticks}")
+        if not 0.0 <= rate <= 1.0:
+            raise ValueError(f"rate must be in [0, 1], got {rate}")
+        factor = (1.0 - rate) ** ticks
+        self.affinity *= factor
+        self.trust *= factor
 
     def to_context(self) -> str:
         """recall 時に注入する短い関係状態サマリ。"""
@@ -126,6 +146,20 @@ class RelationStore:
             try:
                 state = self.get(partner_id)
                 state.add_milestone(label)
+                self._save_in_txn(state)
+                self.con.commit()
+            except Exception:
+                self.con.rollback()
+                raise
+            return state
+
+    def decay(self, partner_id: str, ticks: int = 1,
+              rate: float = DEFAULT_RELATION_DECAY_RATE) -> RelationState:
+        """get → decay → save を単一ロック・単一トランザクションで行う。"""
+        with self.lock:
+            try:
+                state = self.get(partner_id)
+                state.decay(ticks=ticks, rate=rate)
                 self._save_in_txn(state)
                 self.con.commit()
             except Exception:
