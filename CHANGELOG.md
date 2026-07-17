@@ -4,6 +4,18 @@
 バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に従う。
 公開 API の定義は [docs/PUBLIC_API.md](./docs/PUBLIC_API.md)。
 
+## [1.0.0] - 2026-07-17
+
+### Added
+- `docs/INTEGRATION.md` — hersona 並置規約の確定と統合実験
+  (`benchmarks/eval_hersona_integration.py`)。persona_override_attack_ja
+  (n=2)で state_block 並置による人格維持の劣化なしを確認(リリースゲート合格)
+- 実験結果は全トランスクリプト込みで
+  `benchmarks/results_hersona_integration/` に保存
+
+### Changed
+- v0.1 リリースゲート(P0/P1)全項目を消し込み、1.0.0 として確定
+
 ## [1.0.0rc1] - 2026-07-16
 
 ### Added
