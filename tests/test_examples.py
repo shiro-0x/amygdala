@@ -47,6 +47,39 @@ def test_chat_loop_demo_runs():
     assert "score=" in result.stdout
 
 
+def test_custom_backend_demo_runs():
+    """任意バックエンド(mnemosyne 非依存)で amygdala が動く配線確認。"""
+    result = subprocess.run(
+        [sys.executable, str(REPO_ROOT / "examples" / "custom_backend.py")],
+        capture_output=True, text=True, timeout=60, cwd=str(REPO_ROOT),
+    )
+    assert result.returncode == 0, result.stderr
+    assert "MyBackendCore" in result.stdout
+    assert "## 感情状態" in result.stdout
+    assert "recall:" in result.stdout
+
+
+def test_custom_backend_core_satisfies_protocol():
+    """MyBackendCore が Core Protocol を満たし、mnemosyne 無しで router に載る。"""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "custom_backend", REPO_ROOT / "examples" / "custom_backend.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    from amygdala import Core, Emotion, MemoryRouter
+
+    core = mod.MyBackendCore()
+    assert isinstance(core, Core)  # Protocol(runtime_checkable 相当)
+    r = MemoryRouter(core, db_path=":memory:",
+                     classifier=lambda _t: Emotion(joy=1.0, neutral=0.0))
+    try:
+        r.remember("楽しかった", partner_id="p")
+        r.worker.drain_sync()
+        assert r.recall("楽しかった", ctx={"partner_id": "p"})
+    finally:
+        r.close()
+
+
 def test_llm_classifier_schema_is_valid():
     """anthropic が入っている環境でのみ、スキーマと生成器の形を検証する。"""
     pytest.importorskip("anthropic")

@@ -11,7 +11,7 @@ tests/test_contract_mnemosyne.py で検証する)。
 """
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from amygdala._ulid import new_ulid
 from amygdala.rerank import Candidate
@@ -27,20 +27,36 @@ def _clamp01(x) -> float:
     return max(0.0, min(1.0, v))
 
 
+@runtime_checkable
 class Core(Protocol):
-    """上流(mnemosyne)が提供する記憶機能の最小インターフェース。"""
+    """記憶基盤が提供すべき最小インターフェース(バックエンド非依存の継ぎ目)。
+
+    amygdala は mnemosyne 前提ではなく、この 3 メソッドを満たす任意の
+    バックエンドに載る。既定実装は `RealCore`(mnemosyne)だが、ベクトル DB
+    や他の記憶システムを使う場合はこの Protocol を実装したアダプタを渡せば
+    よい(`examples/custom_backend.py` 参照)。テスト用の `InMemoryCore` は
+    mnemosyne ゼロでこの Protocol を満たす実例。
+
+    契約(バックエンドが守るべき点):
+    - `remember` の戻り値 memory_id が **ULID(時系列ソート可能)** なら
+      STM 境界除外が効く。非 ULID の場合 STM は安全に無効化される(fail-open)。
+    - `recall` は `Candidate`(memory_id / text / score 0〜1 / importance /
+      partner_id)へ正規化して返す。score の正規化はアダプタの責務。
+    - triple(知識グラフ)概念が無いバックエンドは `triple_add` を no-op に
+      してよい(体験の感情処理には影響しない)。
+    """
 
     def remember(self, content: str, importance: float = 0.5) -> str:
-        """体験を episodic に書き、memory_id(ULID) を返す。"""
+        """体験を書き、memory_id(できれば ULID)を返す。"""
         ...
 
     def recall(self, query: str, top_k: int) -> list[Candidate]:
-        """ハイブリッド検索の候補を Candidate 正規化済みで返す。"""
+        """検索候補を Candidate 正規化済みで返す。"""
         ...
 
     def triple_add(self, subject: str, predicate: str, obj: str,
                    valid_from: str | None = None) -> None:
-        """知識(事実)を temporal triple に書く。感情は付けない。"""
+        """知識(事実)を書く。感情は付けない。無ければ no-op でよい。"""
         ...
 
 
@@ -51,8 +67,16 @@ class RealCore:
     """
 
     def __init__(self):
-        from mnemosyne import remember, recall  # type: ignore
-        from mnemosyne.core.triples import TripleStore  # type: ignore
+        try:
+            from mnemosyne import remember, recall  # type: ignore
+            from mnemosyne.core.triples import TripleStore  # type: ignore
+        except ImportError as e:  # pragma: no cover - 環境依存
+            raise ImportError(
+                "RealCore は mnemosyne バックエンドを必要とします: "
+                "`pip install amygdala[mnemosyne]`。"
+                "別の記憶基盤を使う場合は Core Protocol を実装したアダプタを "
+                "MemoryRouter に渡してください(examples/custom_backend.py)。"
+            ) from e
         self._remember = remember
         self._recall = recall
         self._kg = TripleStore()

@@ -108,6 +108,37 @@ router.export_state(partner_id="user_42")
 
 For tests or trying things out without mnemosyne, use `InMemoryCore`.
 
+## Bring your own backend
+
+amygdala is **not tied to mnemosyne**. All memory access goes through the
+`Core` protocol — three methods:
+
+```python
+class Core(Protocol):
+    def remember(self, content, importance=0.5) -> str: ...          # write, return an id
+    def recall(self, query, top_k) -> list[Candidate]: ...           # return candidates
+    def triple_add(self, subject, predicate, obj, valid_from=None): ...  # facts (may no-op)
+```
+
+Implement those three against any backend — a vector DB (Chroma, Qdrant),
+another memory system (Letta/MemGPT), or your own store — and pass the adapter
+to `MemoryRouter`. `RealCore` (mnemosyne) and `InMemoryCore` are just two
+implementations of this protocol; see
+[`examples/custom_backend.py`](./examples/custom_backend.py) for a wrapper you
+can adapt. `Core` is `@runtime_checkable`, so `isinstance(my_core, Core)` works.
+
+Two things to know:
+
+- **STM-boundary exclusion needs time-sortable ids.** If your `remember`
+  returns ULIDs, STM exclusion works. If it returns non-sortable ids (UUID4,
+  autoincrement), STM exclusion safely disables (fail-open) and everything else
+  still works.
+- **`triple_add` may be a no-op** if your backend has no knowledge-graph
+  concept — it only affects `remember_fact`, not emotional memory.
+
+(mnemosyne is still the default dependency; a `pip install amygdala[mnemosyne]`
+extra is provided, and using a different backend today still installs it.)
+
 The evidence behind the default rerank weights (comparison against an
 emotion-off baseline) is reproducible via `python benchmarks/eval_rerank.py`
 (results: [benchmarks/results.json](./benchmarks/results.json)).
