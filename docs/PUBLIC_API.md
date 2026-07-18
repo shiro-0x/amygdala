@@ -86,9 +86,9 @@ from amygdala import MemoryRouter, Emotion, RealCore
 
 | シンボル | 説明 |
 |---|---|
-| `Core` | mnemosyne が提供する最小インターフェースの Protocol(`remember` / `recall` / `triple_add`) |
-| `RealCore` | 本番用。mnemosyne を実呼び出しし、スコアを 0〜1 に正規化して `Candidate` へ変換 |
-| `InMemoryCore` | テスト・試用向けの最小実装(mnemosyne 不要) |
+| `Core` | 記憶基盤の最小インターフェース Protocol(`remember` / `recall` / `triple_add`)。**バックエンド非依存の継ぎ目**。`@runtime_checkable`(`isinstance(x, Core)` 可)。これを実装すれば任意の記憶システム(ベクトル DB 等)に載る |
+| `RealCore` | 既定バックエンド。mnemosyne を実呼び出しし、スコアを 0〜1 に正規化して `Candidate` へ変換。未インストール時は導入方法を案内する ImportError |
+| `InMemoryCore` | テスト・試用向けの最小実装(mnemosyne 不要)。別バックエンドアダプタの実例でもある |
 
 ## 安定性の注記
 

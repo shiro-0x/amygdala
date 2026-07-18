@@ -95,6 +95,35 @@ router.export_state(partner_id="user_42")
 
 テストや mnemosyne なしの試用には `InMemoryCore` が使えます。
 
+## 任意のバックエンドに載せる
+
+amygdala は **mnemosyne 専用ではありません**。記憶基盤とのやり取りは
+`Core` protocol の 3 メソッドだけに閉じています:
+
+```python
+class Core(Protocol):
+    def remember(self, content, importance=0.5) -> str: ...          # 書いて ID を返す
+    def recall(self, query, top_k) -> list[Candidate]: ...           # 候補を返す
+    def triple_add(self, subject, predicate, obj, valid_from=None): ...  # 事実(no-op 可)
+```
+
+この 3 つを実装すれば、ベクトル DB(Chroma / Qdrant)、他の記憶システム
+(Letta/MemGPT)、独自ストアなど任意のバックエンドに載ります。`RealCore`
+(mnemosyne)や `InMemoryCore` も同じ protocol の実装にすぎません。包み方は
+[`examples/custom_backend.py`](./examples/custom_backend.py) を参照。`Core` は
+`@runtime_checkable`(`isinstance(my_core, Core)` が使えます)。
+
+2 点だけ注意:
+
+- **STM 境界除外は時系列ソート可能な ID を必要とします。** `remember` が
+  ULID を返せば STM 除外が効きます。非ソート ID(UUID4 / 連番)の場合は
+  安全に無効化(fail-open)され、他の機能はそのまま動きます。
+- 知識グラフが無いバックエンドなら **`triple_add` は no-op でも構いません**
+  (影響するのは `remember_fact` のみで、情動記憶には無関係)。
+
+(mnemosyne は今のところ既定依存です。`pip install amygdala[mnemosyne]` の
+extra を用意していますが、別バックエンド利用時も現状は既定依存が入ります。)
+
 ## 感情推定器のリファレンス実装(examples/)
 
 `classifier` は `Callable[[str], Emotion]` なら何でも差し込めます。参考実装:

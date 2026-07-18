@@ -4,6 +4,20 @@
 バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に従う。
 公開 API の定義は [docs/PUBLIC_API.md](./docs/PUBLIC_API.md)。
 
+## [1.4.0] - 2026-07-17
+
+### Added
+- **バックエンド非依存の明文化**: amygdala は mnemosyne 専用ではなく、
+  `Core` Protocol(`remember` / `recall` / `triple_add` の 3 メソッド)を
+  満たす任意の記憶基盤(ベクトル DB 等)に載る。`Core` を
+  `@runtime_checkable` 化(`isinstance(x, Core)` 可)、`examples/custom_backend.py`
+  にリファレンスアダプタ(mnemosyne ゼロで動作)を追加
+- `RealCore` 未導入時の ImportError を改善(`pip install amygdala[mnemosyne]`
+  と別バックエンド案を案内)。`[mnemosyne]` extra を追加
+
+### Notes
+- 既定の mnemosyne ハード依存はそのまま(解除は破壊的変更のためオーナー判断)
+
 ## [1.3.0] - 2026-07-17
 
 ### Added

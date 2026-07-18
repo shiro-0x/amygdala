@@ -24,7 +24,7 @@ from amygdala.store import EmotionStore
 from amygdala.worker import (EmotionClassifier, EmotionJob, EmotionWorker,
                              MilestoneDetector)
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 __all__ = [
     "AXES",
