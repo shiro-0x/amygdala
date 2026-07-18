@@ -4,6 +4,15 @@
 バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に従う。
 公開 API の定義は [docs/PUBLIC_API.md](./docs/PUBLIC_API.md)。
 
+## [1.3.0] - 2026-07-17
+
+### Added
+- 未決事項 §10-5 の決定: hersona 連携を**トークンコストがかからない方向**で
+  確定。`compose_system_prompt(persona_block, state_block)`(および
+  `MemoryRouter.compose_system_prompt`)を追加し、性格+感情ブロックの並置を
+  アプリ側コード(LLM 非依存)で行う。hersona skill(SKILL.md)には連携
+  ロジックを入れないため、`/hersona` の毎ターン token コストは増えない
+
 ## [1.2.0] - 2026-07-17
 
 ### Added

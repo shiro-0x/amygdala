@@ -84,6 +84,33 @@ def test_export_state_json_serializable():
     assert export_state(_mood())["relation"] is None
 
 
+def test_compose_system_prompt_order_and_separator():
+    from amygdala import compose_system_prompt
+    out = compose_system_prompt("PERSONA", "STATE")
+    assert out == "PERSONA\n\nSTATE"          # persona 先、空行区切り
+    assert out.index("PERSONA") < out.index("STATE")
+
+
+def test_compose_system_prompt_empty_sides():
+    from amygdala import compose_system_prompt
+    assert compose_system_prompt("PERSONA", "") == "PERSONA"     # 感情なし
+    assert compose_system_prompt("", "STATE") == "STATE"         # 性格なし
+    assert compose_system_prompt("PERSONA\n", "  STATE  ") == "PERSONA\n\nSTATE"
+
+
+def test_router_compose_system_prompt(tmp_path):
+    r = MemoryRouter(InMemoryCore(), db_path=str(tmp_path / "a.db"),
+                     classifier=lambda _t: Emotion(joy=1.0, neutral=0.0))
+    try:
+        r.remember("楽しかった", partner_id="user")
+        r.worker.drain_sync()
+        prompt = r.compose_system_prompt("PERSONA_BLOCK", partner_id="user")
+        assert prompt.startswith("PERSONA_BLOCK\n\n")
+        assert "## 感情状態" in prompt
+    finally:
+        r.close()
+
+
 def test_token_estimate():
     est = token_estimate(render_state_block(_mood(), _relation(), lang="ja"))
     assert est["chars"] > 0
