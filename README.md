@@ -29,7 +29,8 @@ Requirements, design decisions, and the roadmap live in
 [docs/REQUIREMENTS.md](./docs/REQUIREMENTS.md) (Japanese). The public API
 surface (semver contract) is [docs/PUBLIC_API.md](./docs/PUBLIC_API.md).
 The hersona coexistence convention and the integration experiment (no
-degradation in persona maintenance with the state block appended, n=2) are
+clear degradation in persona maintenance with the state block appended;
+two scenarios, n=6/n=4) are
 documented in [docs/INTEGRATION.md](./docs/INTEGRATION.md).
 
 ## The core idea: two-stage ranking
