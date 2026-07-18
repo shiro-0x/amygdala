@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "amygdala"
-version = "1.4.0"
-description = "Emotion & relationship memory layer on top of mnemosyne — 5-axis emotions, relationship progression, mood state, and prompt injection blocks for LLM characters"
+version = "2.0.0"
+description = "Backend-agnostic emotion & relationship memory layer for LLM characters — 5-axis emotions, relationship progression, mood state, and prompt injection blocks; pluggable memory backend (mnemosyne by default)"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -20,19 +20,16 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-# 既定バックエンド = mnemosyne-memory(vec + FTS5 hybrid, temporal triples)。
-# 対応範囲は 3.x 系(戻り値契約は tests/test_contract_mnemosyne.py で検証)。
 # amygdala 本体はバックエンド非依存(Core Protocol の 3 メソッドのみに依存)。
-# 別バックエンドを使う場合も現状はこの既定依存が入る(ハード依存の解除は
-# 破壊的変更のためオーナー判断。examples/custom_backend.py 参照)。
-dependencies = [
-    "mnemosyne-memory>=3.12,<4",
-]
+# 実行時のハード依存は無い(標準ライブラリのみ)。記憶基盤は用途に応じて
+# extra で選ぶ(既定は mnemosyne。任意バックエンドは examples/custom_backend.py)。
+dependencies = []
 
 [project.optional-dependencies]
-# 既定バックエンドを明示指定したい場合のエイリアス(RealCore の ImportError が案内)
+# 既定バックエンド = mnemosyne-memory(vec + FTS5 hybrid, temporal triples)。
+# 対応 3.x 系。戻り値契約は tests/test_contract_mnemosyne.py で検証。
 mnemosyne = ["mnemosyne-memory>=3.12,<4"]
-# 上流の optional embeddings profile に整合させる(fastembed を直接固定しない)
+# mnemosyne の optional embeddings profile(fastembed を直接固定しない)
 embeddings = ["mnemosyne-memory[embeddings]>=3.12,<4"]
 dev = ["pytest>=8"]
 

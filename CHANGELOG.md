@@ -4,6 +4,23 @@
 バージョニングは [Semantic Versioning](https://semver.org/lang/ja/) に従う。
 公開 API の定義は [docs/PUBLIC_API.md](./docs/PUBLIC_API.md)。
 
+## [2.0.0] - 2026-07-17
+
+### Changed (BREAKING)
+- **mnemosyne をハード依存から外した。** `pip install amygdala` は追加依存
+  ゼロ(標準ライブラリのみ)でインストールされ、バックエンドは extra で選ぶ:
+  - 既定バックエンドを使う → `pip install amygdala[mnemosyne]`
+  - 任意バックエンド → `Core` アダプタを自作(`examples/custom_backend.py`)
+  - **移行**: これまで `pip install amygdala` + `RealCore()` で動いていた
+    コードは、`pip install amygdala[mnemosyne]` に変えるだけでそのまま動く
+    (Python API・挙動は不変)。amygdala 本体の import・`InMemoryCore`・
+    任意バックエンドは依存ゼロで動く。
+
+### Notes
+- CI にバックエンド非依存ジョブを追加(追加依存ゼロで install/import でき、
+  かつ mnemosyne が入らないことを検証)。既存の test ジョブは
+  `[dev,mnemosyne]` で contract test まで実行
+
 ## [1.4.0] - 2026-07-17
 
 ### Added

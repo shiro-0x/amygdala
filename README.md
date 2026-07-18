@@ -5,9 +5,9 @@ English · [**日本語**](./README.ja.md)
 > Named after the amygdala, the brain region that governs emotion. An
 > **emotion & relationship layer** on top of a fact-memory foundation.
 
-`amygdala` is a thin layer on top of the
-[mnemosyne](https://github.com/mnemosyne-oss/mnemosyne) (MIT) fact-memory
-engine that adds:
+`amygdala` is a thin, **backend-agnostic** layer over a pluggable fact-memory
+engine ([mnemosyne](https://github.com/mnemosyne-oss/mnemosyne) by default) that
+adds:
 
 - **A 5-axis emotion parameter** — 喜 joy / 怒 anger / 哀 sorrow / 楽
   pleasure / 無 neutral — attached to experiential memories
@@ -61,10 +61,22 @@ memories behave as neutral until estimation completes.
   pending estimation jobs are lost; the affected memories simply stay
   neutral.
 
+## Install
+
+```bash
+pip install amygdala             # backend-agnostic core, zero runtime deps
+pip install amygdala[mnemosyne]  # + the default mnemosyne backend
+```
+
+amygdala itself has no hard dependency: `import amygdala`, `InMemoryCore`, and
+any custom backend work with nothing else installed. Install the `[mnemosyne]`
+extra to use `RealCore` (the default backend), or bring your own — see
+[Bring your own backend](#bring-your-own-backend).
+
 ## Usage
 
 ```python
-from amygdala import MemoryRouter, RealCore
+from amygdala import MemoryRouter, RealCore  # RealCore needs amygdala[mnemosyne]
 
 router = MemoryRouter(RealCore(), classifier=my_emotion_classifier)
 
@@ -136,8 +148,9 @@ Two things to know:
 - **`triple_add` may be a no-op** if your backend has no knowledge-graph
   concept — it only affects `remember_fact`, not emotional memory.
 
-(mnemosyne is still the default dependency; a `pip install amygdala[mnemosyne]`
-extra is provided, and using a different backend today still installs it.)
+amygdala has **no hard runtime dependency**: the default `pip install amygdala`
+installs the backend-agnostic core only. `pip install amygdala[mnemosyne]` adds
+the default mnemosyne backend; a custom backend needs neither.
 
 The evidence behind the default rerank weights (comparison against an
 emotion-off baseline) is reproducible via `python benchmarks/eval_rerank.py`
@@ -169,7 +182,7 @@ context. See [docs/PUBLIC_API.md](./docs/PUBLIC_API.md).
 ## Development
 
 ```bash
-pip install -e ".[dev]"
+pip install -e ".[dev,mnemosyne]"  # mnemosyne is for the contract test
 pytest
 ```
 
