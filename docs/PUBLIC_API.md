@@ -42,6 +42,7 @@ from amygdala import MemoryRouter, Emotion, RealCore
 
 | シンボル | 説明 |
 |---|---|
+| `compose_system_prompt(persona_block, state_block) -> str`(1.3+)| 性格ブロック(hersona)+ 感情ブロック(amygdala)をアプリ側コードで並置(persona→state 順、空行区切り)。連携を skill 本文に入れないため `/hersona` の毎ターン token コストは増えない(§10-5)。`MemoryRouter.compose_system_prompt(persona_block, partner_id=None, lang="ja")` も同機能 |
 | `render_state_block(mood, relation=None, lang="ja") -> str` | 気分+関係状態のシステムプロンプト注入ブロック(ja/en)。FR-6.5 の出力規約(無害化・長さ制限・データ宣言)込み |
 | `export_state(mood, relation=None) -> dict` | JSON 化可能な dict。`dominant` は表情マッピング(emotionMap 等)に使える |
 | `sanitize_value(value, max_len=30) -> str` | 自由文字列をテンプレート値として安全な形に整形(FR-6.5) |

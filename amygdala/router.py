@@ -166,6 +166,18 @@ class MemoryRouter:
                     if partner_id is not None else None)
         return attach.export_state(self.mood(), relation)
 
+    def compose_system_prompt(self, persona_block: str,
+                              partner_id: str | None = None,
+                              lang: str = "ja") -> str:
+        """性格ブロック(hersona)に気分・関係ブロックを並置する(FR-6.3)。
+
+        `persona_block + "\\n\\n" + state_block` をアプリ側コードで合成する
+        ヘルパー。hersona skill には手を入れないので `/hersona` の毎ターン
+        token コストは増えない(§10-5 の決定)。
+        """
+        return attach.compose_system_prompt(
+            persona_block, self.state_block(partner_id=partner_id, lang=lang))
+
     # --- データライフサイクル(NFR-12) ---
 
     def export_partner(self, partner_id: str) -> dict:

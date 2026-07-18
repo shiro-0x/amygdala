@@ -23,6 +23,7 @@ from amygdala.relation import RelationState
 
 MAX_VALUE_LEN = 30      # 埋め込む自由文字列 1 件あたりの最大長
 MAX_MILESTONES = 5      # ブロックに載せる milestone の最大件数
+BLOCK_SEPARATOR = "\n\n"  # 性格ブロックと感情ブロックの区切り
 
 _AXIS_LABELS_JA = {"joy": "喜", "anger": "怒", "sorrow": "哀",
                    "pleasure": "楽", "neutral": "無"}
@@ -131,6 +132,30 @@ def export_state(mood: Emotion,
             "milestones": list(relation.milestones),
         }
     return out
+
+
+def compose_system_prompt(persona_block: str, state_block: str) -> str:
+    """性格ブロック(hersona)の後ろに感情ブロック(amygdala)を並置する(FR-6.3)。
+
+    連携はこの純粋なアプリ側コード(LLM 非依存)で完結する。hersona の
+    skill 本文(SKILL.md)に連携ロジックを入れないため、`/hersona` skill の
+    毎ターン token コストは増えない(未決事項 §10-5 の決定)。連携で増える
+    のは state_block そのもの(感情のペイロード)だけ。
+
+    順序は persona → state で固定(性格が先、感情はその解釈フィルタ)。
+    どちらかが空なら区切りを入れずもう一方をそのまま返す。
+
+    Args:
+        persona_block: hersona の `render_blend(...).prompt` など。
+        state_block: amygdala の `router.state_block(...)`。
+    """
+    persona = (persona_block or "").rstrip()
+    state = (state_block or "").strip()
+    if not state:
+        return persona
+    if not persona:
+        return state
+    return persona + BLOCK_SEPARATOR + state
 
 
 def token_estimate(text: str) -> dict:
